@@ -1,4 +1,5 @@
 using Refit;
+using System.Xml;
 using Template.Api.Middleware;
 using Template.CrossCutting;
 using Template.Domain.AutoMapper;
@@ -22,6 +23,18 @@ void SetServices(IServiceCollection services)
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddRefitClient<ITokenApi>().ConfigureHttpClient((options) => { options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("TokenApi")); });
+
+    services.AddRefitClient<ILabWareApi>(new RefitSettings
+    {
+        ContentSerializer = new XmlContentSerializer(
+            new XmlContentSerializerSettings
+            {
+                XmlReaderWriterSettings = new XmlReaderWriterSettings()
+                {
+                    ReaderSettings = new XmlReaderSettings { IgnoreWhitespace = true }
+                }
+            })
+    }).ConfigureHttpClient((options) => { options.BaseAddress = new Uri("https://integrationqas.brf-corp.com"); });
 }
 
 void SetConfig(WebApplication app)
