@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Template.Domain.Commands;
@@ -9,7 +8,7 @@ using Template.Domain.Interfaces.Api;
 using Template.Domain.Interfaces.Service;
 using Template.Domain.ViewModels.Resultados;
 using Template.Service.Services;
-using AmostrasCommand = Template.Domain.Commands.Resultados.AmostrasCommand;
+using Template.Service.Validators.LabWare;
 
 namespace LabWare.Service.Services
 {
@@ -37,6 +36,8 @@ namespace LabWare.Service.Services
 
         public async Task<string> Resultados(AmostrasCommand command)
         {
+            Validate(command, new ResultadosValidator());
+
             var envelope = new Template.Domain.Commands.Resultados.Envelope(command);
             var endPoint = new EndpointLabWareCommand("RESULTADOS");
             var retorno = await _labWareApi.Resultados(endPoint, envelope, GetToken());
@@ -59,6 +60,9 @@ namespace LabWare.Service.Services
 
         public async Task<bool> Close(string authToken)
         {
+            if (string.IsNullOrEmpty(authToken))
+                throw new ValidationException("authToken Nullo ou em Branco");
+
             var envelope = new Template.Domain.Commands.Close.Envelope(authToken);
             var endPoint = new EndpointLabWareCommand("CLOSE");
             var retorno = await _labWareApi.Close(endPoint, envelope, GetToken());
@@ -66,14 +70,16 @@ namespace LabWare.Service.Services
             return retorno.Body.closeResponse.@return;
         }
 
-        public async Task<bool> SendSampleList(List<Template.Domain.Commands.Amostras.AmostrasCommand> amostras)
+        public async Task<bool> SendSampleList(List<SampleCommand> amostras)
         {
+            Validate(amostras, new SamplesValidator());
+
             var authToken = await Auth();
 
             foreach (var amostra in amostras)
                 await Resultados(new AmostrasCommand(amostra, authToken));
 
-            return true;
+            return await Close(authToken);
         }
 
         private static string GetToken()

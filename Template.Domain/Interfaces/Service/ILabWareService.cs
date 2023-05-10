@@ -1,4 +1,5 @@
-﻿using AmostrasCommand = Template.Domain.Commands.Resultados.AmostrasCommand;
+﻿using Template.Domain.Commands.Amostras;
+using Template.Domain.Commands.Resultados;
 
 namespace Template.Domain.Interfaces.Service
 {
@@ -7,6 +8,6 @@ namespace Template.Domain.Interfaces.Service
         Task<string> Auth();
         Task<string> Resultados(AmostrasCommand command);
         Task<bool> Close(string authToken);
-        Task<bool> SendSampleList(List<Commands.Amostras.AmostrasCommand> command);
+        Task<bool> SendSampleList(List<SampleCommand> command);
     }
 }

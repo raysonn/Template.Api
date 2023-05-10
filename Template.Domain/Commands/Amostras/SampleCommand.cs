@@ -1,6 +1,6 @@
 ﻿namespace Template.Domain.Commands.Amostras
 {
-    public partial class AmostrasCommand
+    public partial class SampleCommand
     {
         public string AnalysisDateC { get; set; }
         public string AnalysisUserC { get; set; }

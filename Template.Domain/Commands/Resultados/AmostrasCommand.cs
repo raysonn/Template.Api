@@ -10,7 +10,9 @@
         public string ResultCodeC { get; set; }
         public string ResultValueC { get; set; }
 
-        public AmostrasCommand(Amostras.AmostrasCommand command, string authToken)
+        public AmostrasCommand() { }
+
+        public AmostrasCommand(Amostras.SampleCommand command, string authToken)
         {
             AuthToken = authToken;
             AnalysisDateC = command.AnalysisDateC;

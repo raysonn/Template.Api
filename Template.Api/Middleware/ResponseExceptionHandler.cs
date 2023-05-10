@@ -22,25 +22,16 @@ namespace Template.Api.Middleware
             {
                 await _next(httpContext);
             }
-            catch (ValidationException ex)
+            catch (Exception error)
             {
-                Response(httpContext, ex.Errors.Select(x => x.ErrorMessage).ToList(), ex);
-            }
-            catch (ArgumentException ex)
-            {
-                Response(httpContext, new List<string>() { ex.Message }, ex);
-            }
-            catch (SqlException ex)
-            {
-                Response(httpContext, new List<string>() { ex.Message }, ex);
-            }
-            catch (ApiException ex)
-            {
-                Response(httpContext, new List<string>() { ex.Message, ex.Content }, ex);
-            }
-            catch (Exception ex)
-            {
-                Response(httpContext, new List<string>() { ex.Message }, ex);
+                switch (error)
+                {
+                    case ValidationException ex: Response(httpContext, new List<string>() { ex.Message }, ex); break;
+                    case ArgumentException ex: Response(httpContext, new List<string>() { ex.Message }, ex); break;
+                    case SqlException ex: Response(httpContext, new List<string>() { ex.Message }, ex); break;
+                    case ApiException ex: Response(httpContext, new List<string>() { ex.Message, ex.Content }, ex); break;
+                    default: Response(httpContext, new List<string>() { error.Message }, error); break;
+                }
             }
         }
 
