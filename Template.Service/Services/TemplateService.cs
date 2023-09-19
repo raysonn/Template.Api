@@ -4,6 +4,7 @@ using Template.Domain.Interfaces.Infra;
 using Template.Domain.Interfaces.Service;
 using Template.Domain.Models;
 using Template.Domain.ViewModels;
+using Template.RabbitMq;
 using Template.Service.Validators.Template;
 
 namespace Template.Service.Services
@@ -12,6 +13,7 @@ namespace Template.Service.Services
     {
         private readonly IMapper _mapper;
         private readonly ITemplateRepository _TemplateRepository;
+        private readonly QueueHelper templateQueueHelper;
 
         public TemplateService
         (
@@ -21,6 +23,7 @@ namespace Template.Service.Services
         {
             _mapper = mapper;
             _TemplateRepository = TemplateRepository;
+            templateQueueHelper = new QueueHelper("Template");
         }
 
         public async Task<IEnumerable<TemplateViewModel>> GetAll() => _mapper.Map<IEnumerable<TemplateViewModel>>(await _TemplateRepository.GetAll());
@@ -30,6 +33,8 @@ namespace Template.Service.Services
         public async Task<int> Insert(TemplateCommand command)
         {
             Validate(command, new InsertTemplateValidator());
+
+            templateQueueHelper.Publish(command);
 
             var model = _mapper.Map<_Template>(command);
             model.CriadoPor = 123; // Id do usuario logado

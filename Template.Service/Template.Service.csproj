@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Template.Domain\Template.Domain.csproj" />
+    <ProjectReference Include="..\Template.RabbitMq\Template.RabbitMq.csproj" />
   </ItemGroup>
 
 </Project>

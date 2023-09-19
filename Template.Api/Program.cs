@@ -1,59 +1,42 @@
-using Refit;
-using System.Xml;
 using Template.Api.Middleware;
 using Template.CrossCutting;
 using Template.Domain.AutoMapper;
-using Template.Domain.Interfaces.Api;
 using Template.IoC;
+using Template.RabbitMq;
+using Uninter.Template.CrossCutting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure services
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(conf => AutoMapperConfiguration.RegisterMappings(conf), AppDomain.CurrentDomain.GetAssemblies());
 
-SetServices(builder.Services);
+// Register dependencies using IoC container
 NativeInjectorBootStrapper.RegisterServices(builder.Services);
+
+// Configuration settings
+ConnectionStrings.TemplateConnection = builder.Configuration.GetConnectionString("TemplateConnection");
+foreach (var config in builder.Configuration.GetSection("AppConfiguration").GetChildren())
+    Environment.SetEnvironmentVariable(config.Key, config.Value);
+RabbitMqConfig.SetEnviromentVariablesApi();
+
+builder.Services.Configure<AppSettingsObj>(builder.Configuration);
+builder.Services.AddRefitClients(builder.Configuration);
 
 var app = builder.Build();
 
-SetConfig(app);
-SetEnviroment(app);
-
-void SetServices(IServiceCollection services)
+// Set environment-specific middleware
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
-    services.AddControllers();
-    services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen();
-    services.AddRefitClient<ITokenApi>().ConfigureHttpClient((options) => { options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("TokenApi")); });
-
-    services.AddRefitClient<ILabWareApi>(new RefitSettings
-    {
-        ContentSerializer = new XmlContentSerializer(
-            new XmlContentSerializerSettings
-            {
-                XmlReaderWriterSettings = new XmlReaderWriterSettings()
-                {
-                    ReaderSettings = new XmlReaderSettings { IgnoreWhitespace = true }
-                }
-            })
-    }).ConfigureHttpClient((options) => { options.BaseAddress = new Uri("https://integrationqas.brf-corp.com"); });
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-void SetConfig(WebApplication app)
-{
-    ConnectionStrings.TemplateConnection = app.Configuration.GetConnectionString("TemplateConnection");
-    app.Configuration.GetSection("AppConfiguration").GetChildren().ToList().ForEach(config => Environment.SetEnvironmentVariable(config.Key, config.Value));
-}
-
-void SetEnviroment(WebApplication app)
-{
-    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    app.UseHttpsRedirection();
-    app.UseAuthorization();
-    app.UseResponseExceptionHandler();
-    app.MapControllers();
-    app.Run();
-}
+// Middleware configuration
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.UseResponseExceptionHandler();
+app.MapControllers();
+app.Run();

@@ -29,7 +29,7 @@ namespace Template.RabbitMq
             switch (Ambiente)
             {
                 case "dev":
-                    HostName = "Dev-queue";
+                    HostName = "localhost";
                     UserName = "admDEV";
                     Password = "senhaDEV";
                     break;

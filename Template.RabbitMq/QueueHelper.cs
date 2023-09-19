@@ -59,8 +59,7 @@ namespace Template.RabbitMq
                 {
                     HostName = RabbitMqConfig.HostName,
                     UserName = RabbitMqConfig.UserName,
-                    Password = RabbitMqConfig.Password,
-                    DispatchConsumersAsync = true
+                    Password = RabbitMqConfig.Password
                 };
 
                 var connection = factory.CreateConnection();
